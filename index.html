@@ -4,12 +4,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>My Shop Tracker</title>
 <style>
-body{font-family:sans-serif;max-width:400px;margin:20px auto;padding:20px;background:#f5f5f5}
+body{font-family:sans-serif;max-width:400px;margin:20px auto;padding:15px;background:#f5f5f5}
 .card{background:white;padding:20px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
 input{width:100%;padding:12px;margin:8px 0;border:1px solid #ddd;border-radius:8px;box-sizing:border-box;font-size:16px}
 button{width:100%;padding:14px;background:#007bff;color:white;border:none;border-radius:8px;font-size:16px;margin-top:10px;cursor:pointer}
-.sale{border-bottom:1px solid #eee;padding:10px 0;display:flex;justify-content:space-between}
-.totals{margin-top:15px;font-weight:bold;background:#e8f4ff;padding:12px;border-radius:8px}
+.sale{border-bottom:1px solid #eee;padding:10px 0;display:flex;justify-content:space-between;font-size:14px}
+.totals{margin-top:15px;font-weight:bold;background:#e8f4ff;padding:12px;border-radius:8px;line-height:1.8}
+.today{background:#fff3cd;padding:12px;border-radius:8px;margin-top:10px;border:1px solid #ffe69c}
 </style>
 </head>
 <body>
@@ -19,19 +20,41 @@ button{width:100%;padding:14px;background:#007bff;color:white;border:none;border
 <input id="sell" type="number" placeholder="Selling Price">
 <input id="cost" type="number" placeholder="Cost Price">
 <button onclick="addSale()">Add Sale</button>
+
+<div class="today">
+<div>📅 TODAY - <span id="todayDate"></span></div>
+<div>Today Sales: N<span id="tTodaySales">0</span></div>
+<div>Today Profit: N<span id="tTodayProfit">0</span></div>
+</div>
+
 <div class="totals">
-<div>Total Sales: <span id="tSales">0</span></div>
-<div>Total Profit: <span id="tProfit">0</span></div>
+<div>ALL TIME Sales: N<span id="tSales">0</span></div>
+<div>ALL TIME Profit: N<span id="tProfit">0</span></div>
 </div>
+
 <div id="list" style="margin-top:15px"></div>
+<button onclick="clearAll()" style="background:#dc3545;margin-top:20px">Clear All Sales</button>
 </div>
+
 <script>
 let sales = JSON.parse(localStorage.getItem('sales')||'[]');
+function getTodayStr(){ return new Date().toISOString().split('T')[0]; }
+
 function render(){
- let ts=0,tp=0,html='';
- sales.forEach(s=>{ts+=s.sell; tp+=(s.sell-s.cost); html+=`<div class=sale><span>${s.name} - ${s.sell}</span><b style=color:green>+${s.sell-s.cost}</b></div>`});
+ let ts=0,tp=0, tTodayS=0, tTodayP=0;
+ let todayStr = getTodayStr();
+ let html='';
+ sales.forEach(s=>{
+   let d = s.date || todayStr;
+   ts+=s.sell; tp+=(s.sell-s.cost);
+   if(d===todayStr){ tTodayS+=s.sell; tTodayP+=(s.sell-s.cost); }
+   html+=`<div class=sale><span>${d} | ${s.name} - N${s.sell}</span><b style=color:green>+N${s.sell-s.cost}</b></div>`
+ });
  document.getElementById('tSales').innerText=ts;
  document.getElementById('tProfit').innerText=tp;
+ document.getElementById('tTodaySales').innerText=tTodayS;
+ document.getElementById('tTodayProfit').innerText=tTodayP;
+ document.getElementById('todayDate').innerText=todayStr;
  document.getElementById('list').innerHTML=html||'No sales yet';
  localStorage.setItem('sales',JSON.stringify(sales));
 }
@@ -40,10 +63,11 @@ function addSale(){
  let s=parseInt(document.getElementById('sell').value);
  let c=parseInt(document.getElementById('cost').value);
  if(!n||!s||!c){alert('Fill all 3 fields');return}
- sales.unshift({name:n,sell:s,cost:c});
+ sales.unshift({name:n,sell:s,cost:c,date:getTodayStr()});
  document.getElementById('name').value='';document.getElementById('sell').value='';document.getElementById('cost').value='';
  render();
 }
+function clearAll(){ if(confirm('Delete all sales?')){ sales=[]; render(); } }
 render();
 </script>
 </body>
