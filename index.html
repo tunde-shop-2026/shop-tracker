@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Shop Tracker</title>
+<style>
+body{font-family:Arial;background:#f5f7fb;padding:15px;max-width:500px;margin:auto}
+h1{text-align:center;color:#0b5fff}
+.card{background:white;padding:15px;border-radius:12px;box-shadow:0 2px 8px #0001;margin-bottom:15px}
+input,button{width:100%;padding:12px;margin:6px 0;border-radius:8px;border:1px solid #ddd;box-sizing:border-box}
+button{background:#0b5fff;color:white;border:none;font-weight:bold;cursor:pointer}
+button:active{opacity:.8}
+.item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee}
+.total{font-size:20px;font-weight:bold;text-align:center;color:green}
+</style>
+</head>
+<body>
+<h1>🛒 My Shop Tracker</h1>
+
+<div class="card">
+<h3>Add Sale</h3>
+<input id="name" placeholder="Item name e.g Rice">
+<input id="price" type="number" placeholder="Selling Price (N)">
+<input id="cost" type="number" placeholder="Cost Price (N)">
+<button onclick="add()">Add Sale</button>
+</div>
+
+<div class="card">
+<div>Total Sales: <span id="sales">0</span></div>
+<div>Total Profit: <span id="profit">0</span></div>
+<div class="total">₦<span id="total">0</span> Profit</div>
+</div>
+
+<div class="card" id="list">No sales yet</div>
+
+<script>
+let data=JSON.parse(localStorage.getItem('shop')||'[]');
+function render(){
+ let s=0,p=0,h='';
+ data.forEach((d,i)=>{
+  s+=+d.price; p+=(d.price-d.cost);
+  h+=`<div class=item><span>${d.name} - ₦${d.price}</span><span>Profit ₦${d.price-d.cost} <a href=# onclick="del(${i})">❌</a></span></div>`;
+ });
+ document.getElementById('sales').innerText=data.length;
+ document.getElementById('total').innerText=p;
+ document.getElementById('profit').innerText=p;
+ document.getElementById('list').innerHTML=h||'No sales yet';
+ localStorage.setItem('shop',JSON.stringify(data));
+}
+function add(){
+ let n=name.value, pr=price.value, c=cost.value;
+ if(!n||!pr||!c)return alert('Fill all fields');
+ data.push({name:n,price:+pr,cost:+c});
+ name.value=price.value=cost.value='';
+ render();
+}
+function del(i){data.splice(i,1);render();}
+render();
+</script>
+</body>
+</html>
