@@ -4,57 +4,46 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>My Shop Tracker</title>
 <style>
-body{font-family:Arial;background:#f5f7fb;padding:15px;max-width:500px;margin:auto}
-h1{text-align:center;color:#0b5fff}
-.card{background:white;padding:15px;border-radius:12px;box-shadow:0 2px 8px #0001;margin-bottom:15px}
-input,button{width:100%;padding:12px;margin:6px 0;border-radius:8px;border:1px solid #ddd;box-sizing:border-box}
-button{background:#0b5fff;color:white;border:none;font-weight:bold;cursor:pointer}
-button:active{opacity:.8}
-.item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee}
-.total{font-size:20px;font-weight:bold;text-align:center;color:green}
+body{font-family:sans-serif;max-width:400px;margin:20px auto;padding:20px;background:#f5f5f5}
+.card{background:white;padding:20px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+input{width:100%;padding:12px;margin:8px 0;border:1px solid #ddd;border-radius:8px;box-sizing:border-box;font-size:16px}
+button{width:100%;padding:14px;background:#007bff;color:white;border:none;border-radius:8px;font-size:16px;margin-top:10px;cursor:pointer}
+.sale{border-bottom:1px solid #eee;padding:10px 0;display:flex;justify-content:space-between}
+.totals{margin-top:15px;font-weight:bold;background:#e8f4ff;padding:12px;border-radius:8px}
 </style>
 </head>
 <body>
-<h1>🛒 My Shop Tracker</h1>
-
 <div class="card">
-<h3>Add Sale</h3>
+<h2 style="text-align:center">My Shop Tracker</h2>
 <input id="name" placeholder="Item name e.g Rice">
-<input id="price" type="number" placeholder="Selling Price (N)">
-<input id="cost" type="number" placeholder="Cost Price (N)">
-<button onclick="add()">Add Sale</button>
+<input id="sell" type="number" placeholder="Selling Price">
+<input id="cost" type="number" placeholder="Cost Price">
+<button onclick="addSale()">Add Sale</button>
+<div class="totals">
+<div>Total Sales: <span id="tSales">0</span></div>
+<div>Total Profit: <span id="tProfit">0</span></div>
 </div>
-
-<div class="card">
-<div>Total Sales: <span id="sales">0</span></div>
-<div>Total Profit: <span id="profit">0</span></div>
-<div class="total">₦<span id="total">0</span> Profit</div>
+<div id="list" style="margin-top:15px"></div>
 </div>
-
-<div class="card" id="list">No sales yet</div>
-
 <script>
-let data=JSON.parse(localStorage.getItem('shop')||'[]');
+let sales = JSON.parse(localStorage.getItem('sales')||'[]');
 function render(){
- let s=0,p=0,h='';
- data.forEach((d,i)=>{
-  s+=+d.price; p+=(d.price-d.cost);
-  h+=`<div class=item><span>${d.name} - ₦${d.price}</span><span>Profit ₦${d.price-d.cost} <a href=# onclick="del(${i})">❌</a></span></div>`;
- });
- document.getElementById('sales').innerText=data.length;
- document.getElementById('total').innerText=p;
- document.getElementById('profit').innerText=p;
- document.getElementById('list').innerHTML=h||'No sales yet';
- localStorage.setItem('shop',JSON.stringify(data));
+ let ts=0,tp=0,html='';
+ sales.forEach(s=>{ts+=s.sell; tp+=(s.sell-s.cost); html+=`<div class=sale><span>${s.name} - ${s.sell}</span><b style=color:green>+${s.sell-s.cost}</b></div>`});
+ document.getElementById('tSales').innerText=ts;
+ document.getElementById('tProfit').innerText=tp;
+ document.getElementById('list').innerHTML=html||'No sales yet';
+ localStorage.setItem('sales',JSON.stringify(sales));
 }
-function add(){
- let n=name.value, pr=price.value, c=cost.value;
- if(!n||!pr||!c)return alert('Fill all fields');
- data.push({name:n,price:+pr,cost:+c});
- name.value=price.value=cost.value='';
+function addSale(){
+ let n=document.getElementById('name').value;
+ let s=parseInt(document.getElementById('sell').value);
+ let c=parseInt(document.getElementById('cost').value);
+ if(!n||!s||!c){alert('Fill all 3 fields');return}
+ sales.unshift({name:n,sell:s,cost:c});
+ document.getElementById('name').value='';document.getElementById('sell').value='';document.getElementById('cost').value='';
  render();
 }
-function del(i){data.splice(i,1);render();}
 render();
 </script>
 </body>
