@@ -1,74 +1,85 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>My Shop Tracker</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Shop Tracker + Calculator</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#007bff">
 <style>
-body{font-family:sans-serif;max-width:400px;margin:20px auto;padding:15px;background:#f5f5f5}
-.card{background:white;padding:20px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
-input{width:100%;padding:12px;margin:8px 0;border:1px solid #ddd;border-radius:8px;box-sizing:border-box;font-size:16px}
-button{width:100%;padding:14px;background:#007bff;color:white;border:none;border-radius:8px;font-size:16px;margin-top:10px;cursor:pointer}
-.sale{border-bottom:1px solid #eee;padding:10px 0;display:flex;justify-content:space-between;font-size:14px}
-.totals{margin-top:15px;font-weight:bold;background:#e8f4ff;padding:12px;border-radius:8px;line-height:1.8}
-.today{background:#fff3cd;padding:12px;border-radius:8px;margin-top:10px;border:1px solid #ffe69c}
+body{font-family:Arial;background:#f4f6f9;margin:0;padding:15px}
+.card{background:white;padding:15px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.1);margin-bottom:15px}
+h2{text-align:center;color:#007bff}
+input,button{width:100%;padding:12px;margin:6px 0;border-radius:8px;border:1px solid #ccc;box-sizing:border-box;font-size:16px}
+button{background:#007bff;color:white;border:none;font-weight:bold}
+button.calc{background:#28a745}
+.row{display:flex;gap:10px}.row div{flex:1;background:#e9f0ff;padding:10px;border-radius:8px;text-align:center}
+#calc{display:none;background:#222;color:white;padding:15px;border-radius:12px}
+#calc button{background:#333;margin:4px;width:22%;display:inline-block}
+#calc button.op{background:#ff9500}
+#display{background:black;color:#0f0;padding:15px;font-size:24px;text-align:right;border-radius:8px;margin-bottom:10px;min-height:30px}
 </style>
 </head>
 <body>
+<h2>🛒 My Shop Tracker</h2>
 <div class="card">
-<h2 style="text-align:center">My Shop Tracker</h2>
-<input id="name" placeholder="Item name e.g Rice">
-<input id="sell" type="number" placeholder="Selling Price">
-<input id="cost" type="number" placeholder="Cost Price">
+<div class="row">
+<div><b>Sales</b><br><span id="totalSales">₦0</span></div>
+<div><b>Expenses</b><br><span id="totalExp">₦0</span></div>
+<div><b>Profit</b><br><span id="totalProfit">₦0</span></div>
+</div>
+</div>
+<div class="card">
+<button class="calc" onclick="toggleCalc()">🧮 Open Calculator</button>
+<div id="calc">
+<div id="display">0</div>
+<div>
+<button onclick="press('7')">7</button>
+<button onclick="press('8')">8</button>
+<button onclick="press('9')">9</button>
+<button class="op" onclick="press('/')">/</button>
+<button onclick="press('4')">4</button>
+<button onclick="press('5')">5</button>
+<button onclick="press('6')">6</button>
+<button class="op" onclick="press('*')">x</button>
+<button onclick="press('1')">1</button>
+<button onclick="press('2')">2</button>
+<button onclick="press('3')">3</button>
+<button class="op" onclick="press('-')">-</button>
+<button onclick="press('0')">0</button>
+<button onclick="press('.')">.</button>
+<button class="op" onclick="calcResult()">=</button>
+<button class="op" onclick="press('+')">+</button>
+<button onclick="clearCalc()" style="width:94%;background:#a00">CLEAR</button>
+</div>
+</div>
+</div>
+<div class="card">
+<h3>Add Sale</h3>
+<input id="saleItem" placeholder="Item name">
+<input id="saleAmount" type="number" placeholder="Amount ₦">
 <button onclick="addSale()">Add Sale</button>
-
-<div class="today">
-<div>📅 TODAY - <span id="todayDate"></span></div>
-<div>Today Sales: N<span id="tTodaySales">0</span></div>
-<div>Today Profit: N<span id="tTodayProfit">0</span></div>
 </div>
-
-<div class="totals">
-<div>ALL TIME Sales: N<span id="tSales">0</span></div>
-<div>ALL TIME Profit: N<span id="tProfit">0</span></div>
+<div class="card">
+<h3>Add Expense</h3>
+<input id="expItem" placeholder="Expense name">
+<input id="expAmount" type="number" placeholder="Amount ₦">
+<button onclick="addExp()" style="background:#dc3545">Add Expense</button>
 </div>
-
-<div id="list" style="margin-top:15px"></div>
-<button onclick="clearAll()" style="background:#dc3545;margin-top:20px">Clear All Sales</button>
-</div>
-
+<div class="card" id="list"></div>
 <script>
-let sales = JSON.parse(localStorage.getItem('sales')||'[]');
-function getTodayStr(){ return new Date().toISOString().split('T')[0]; }
-
-function render(){
- let ts=0,tp=0, tTodayS=0, tTodayP=0;
- let todayStr = getTodayStr();
- let html='';
- sales.forEach(s=>{
-   let d = s.date || todayStr;
-   ts+=s.sell; tp+=(s.sell-s.cost);
-   if(d===todayStr){ tTodayS+=s.sell; tTodayP+=(s.sell-s.cost); }
-   html+=`<div class=sale><span>${d} | ${s.name} - N${s.sell}</span><b style=color:green>+N${s.sell-s.cost}</b></div>`
- });
- document.getElementById('tSales').innerText=ts;
- document.getElementById('tProfit').innerText=tp;
- document.getElementById('tTodaySales').innerText=tTodayS;
- document.getElementById('tTodayProfit').innerText=tTodayP;
- document.getElementById('todayDate').innerText=todayStr;
- document.getElementById('list').innerHTML=html||'No sales yet';
- localStorage.setItem('sales',JSON.stringify(sales));
-}
-function addSale(){
- let n=document.getElementById('name').value;
- let s=parseInt(document.getElementById('sell').value);
- let c=parseInt(document.getElementById('cost').value);
- if(!n||!s||!c){alert('Fill all 3 fields');return}
- sales.unshift({name:n,sell:s,cost:c,date:getTodayStr()});
- document.getElementById('name').value='';document.getElementById('sell').value='';document.getElementById('cost').value='';
- render();
-}
-function clearAll(){ if(confirm('Delete all sales?')){ sales=[]; render(); } }
+let sales=JSON.parse(localStorage.getItem('sales')||'[]');
+let exps=JSON.parse(localStorage.getItem('exps')||'[]');
+let cur='';
+function toggleCalc(){let c=document.getElementById('calc');c.style.display=c.style.display=='none'?'block':'none'}
+function press(v){if(cur=='0')cur='';cur+=v;document.getElementById('display').innerText=cur}
+function clearCalc(){cur='';document.getElementById('display').innerText='0'}
+function calcResult(){try{cur=eval(cur).toString();document.getElementById('display').innerText=cur}catch{cur='';document.getElementById('display').innerText='Error'}}
+function addSale(){let n=document.getElementById('saleItem').value;let a=Number(document.getElementById('saleAmount').value);if(!n||!a)return; sales.push({n,a});localStorage.setItem('sales',JSON.stringify(sales));document.getElementById('saleItem').value='';document.getElementById('saleAmount').value='';render()}
+function addExp(){let n=document.getElementById('expItem').value;let a=Number(document.getElementById('expAmount').value);if(!n||!a)return; exps.push({n,a});localStorage.setItem('exps',JSON.stringify(exps));document.getElementById('expItem').value='';document.getElementById('expAmount').value='';render()}
+function render(){let ts=sales.reduce((s,x)=>s+x.a,0);let te=exps.reduce((s,x)=>s+x.a,0);document.getElementById('totalSales').innerText='₦'+ts;document.getElementById('totalExp').innerText='₦'+te;document.getElementById('totalProfit').innerText='₦'+(ts-te);let h='<h3>History</h3>';sales.forEach(s=>h+=`<div>✅ Sale: ${s.n} - ₦${s.a}</div>`);exps.forEach(e=>h+=`<div>❌ Exp: ${e.n} - ₦${e.a}</div>`);document.getElementById('list').innerHTML=h}
 render();
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js')}
 </script>
 </body>
 </html>
